@@ -1,0 +1,211 @@
+<!-- todo: style. -->
+<head>
+   <title>Wormverse</title>
+
+   <link rel="apple-touch-icon" sizes="180x180" href="/client/favicons/apple-touch-icon.png">
+   <link rel="icon" type="image/png" sizes="32x32" href="/client/favicons/favicon-32x32.png">
+   <link rel="icon" type="image/png" sizes="16x16" href="/client/favicons/favicon-16x16.png">
+   <link rel="manifest" href="/client/favicons/site.webmanifest">
+</head>
+
+<style> 
+   img.pointer{
+      cursor: pointer;
+   }
+</style>
+
+<div id="account">
+	Username: <input id="username" type="text"></input><br>
+	Password: <input id="password" type="password"></input>
+	<button id="signIn">Sign In</button>
+	<button id="signUp">Sign Up</button>
+</div>
+
+<!--this is the navigation now (hide the pain harold)-->
+<div id="mainMenu" style="display:none;background-color:red">
+   <h1> Welcome to Wormverse!</h1>
+	<button id="modifyNav">Modify worm</button>
+	<button id="farmNav">Farm stuff</button>
+	<button id="loungeNav">Lounge</button>
+	<button id="friendsNav">Friends/trade</button>
+	<button id="dwellingNav">Dwelling</button>
+	<button id="logoutNav">Logout</button>
+</div>
+
+<div id="gamePane">
+   <div id="modify" style="display:none">
+      <h1> Modify your worm!</h1>
+      <img style="width:200px;height:200px;display:inline-block;border-style:solid" src="/client/img/worms/sprite1.png"/>
+      <br>
+
+      <select name="sprite" id="modifySprite">
+        <option value="1">crouched</option>
+        <option value="2">sassy</option>
+        <option value="3">long</option>
+        <option value="4">curled</option>
+        <option value="5">standard</option>
+      </select><br>
+
+      <select name="sprite" id="">
+        <option value="1">solid</option>
+        <option value="2">polka dots</option>
+        <option value="3">stripes</option>
+      </select><br>
+
+      Change Color: <input id="modifyColor" value="rgba(40,170,255,0.5)" data-jscolor=""><br>
+      Change Secondary Color: <input id="modifySecondaryColor" value="rgba(40,170,255,0.5)" data-jscolor=""><br>
+      <button id="modifyAccessory">Change Accessory</button>
+      <button id="modifySave">Save</button>
+   </div>
+
+   <div id="farm" style="display:none">
+      <h1> Farm items for your worm!</h1>
+      <!-- todo onload with the players #items previously -->
+      <img style="height:50px" onclick="addItem('pie')" src="/client/img/foodstuff/pie.png"/> count: <span> 0 </span> <br>
+      <img style="height:50px" onclick="addItem('peppermint')" src="/client/img/foodstuff/peppermint.png"/> count: <span> 0 </span><br>
+      <img style="height:50px" onclick="addItem('carrot')" src="/client/img/foodstuff/carrot.png"/> count: <span> 0 </span>
+   </div>
+
+   <div id="lounge" style="display:none">
+      <h1> Lounge</h1>
+   </div>
+
+   <div id="friends" style="display:none">
+      <h1> Friends list + trading</h1>
+   </div>
+
+   <div id="dwelling" style="display:none">
+      <h1>Dwelling</h1>
+      <canvas> </canvas>
+   </div>
+
+</div>
+
+<script src="/client/js/jscolor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js"></script>
+<script>
+	var socket = io();
+	
+	//sign in
+	var account = document.getElementById('account');
+	var accountUsername = document.getElementById('username');
+	var accountSignIn = document.getElementById('signIn');
+	var accountSignUp = document.getElementById('signUp');
+	var accountPassword = document.getElementById('password');
+
+   // client worm info  
+   var sprite = 1; 
+   var color = "95d13c"; 
+   var secondaryColor = "0b187a";
+   var pattern = "none";  
+   var accessory = "none";
+   numPies = 0;
+   numPeppermint = 0;
+   numCarrot = 0;
+
+
+   // client -> server socket interactions
+	accountSignIn.onclick = () => {
+		socket.emit('signIn',{username:accountUsername.value,password:accountPassword.value});
+	}
+
+	accountSignUp.onclick = () => {
+		socket.emit('signUp',{username:accountUsername.value,password:accountPassword.value});
+	}
+
+   //todo: update DOM
+   function addItem(name){
+      switch(name){
+         case "pie":
+            numPies++;
+            socket.emit('addItem', {username:accountUsername.value, item:name});
+            break; 
+         case "peppermint": 
+            numPeppermint++;
+            socket.emit('addItem', {username:accountUsername.value, item:name}); 
+            break; 
+         case "carrot":
+            numCarrot++;
+            socket.emit('addItem', {username:accountUsername.value, item:name}); 
+            break; 
+         default: 
+            console.log("hey :(");
+            break; 
+      }
+   }
+  
+   // client <- server interactions
+
+   // loads data into client information about worm upon sign in 
+	socket.on('signInResponse',(data) => {
+		if(data.success){
+			account.style.display = 'none';
+			mainMenu.style.display = 'inline-block';
+
+         sprite = data.sprite; 
+         color = data.color; 
+         secondaryColor = data.secondColor;
+         pattern = data.pattern;  
+         accessory = data.accessory;
+         numPies = data.numPies;
+         numPeppermint = data.numPeppermint;
+         numCarrot = data.numCarrots;
+
+		} else
+			alert("Sign in unsuccessful.");
+	});
+
+	socket.on('signUpResponse',(data) => {
+		if(data.success){
+			alert("Sign up successful.");
+		} else
+			alert("Sign up unsuccessful.");
+	});
+
+	//game
+	
+	var modify = document.getElementById('modify');
+	var farm = document.getElementById('farm');
+	var lounge = document.getElementById('lounge');
+	var friends = document.getElementById('friends');
+	var dwelling = document.getElementById('dwelling');
+
+   //todo: exclusive tabs? 
+   document.getElementById('modifyNav').onclick = () => {
+      if (modify.style.display === 'none') {
+         modify.style.display = 'block';
+         //todo: update dom. 
+      } else {
+         modify.style.display = 'none';
+      }
+   }
+   document.getElementById('farmNav').onclick = () => {
+      if (farm.style.display === "none") {
+         farm.style.display = 'block';
+      } else {
+         farm.style.display = 'none';
+      }
+   }
+   document.getElementById('loungeNav').onclick = () => {
+      if (lounge.style.display === "none") {
+         lounge.style.display = 'block';
+      } else {
+         lounge.style.display = 'none';
+      }
+   }
+   document.getElementById('friendsNav').onclick = () => {
+      if (friends.style.display === "none") {
+         friends.style.display = 'block';
+      } else {
+         friends.style.display = 'none';
+      }
+   }
+   document.getElementById('dwellingNav').onclick = () => {
+      if (dwelling.style.display === "none") {
+         dwelling.style.display = 'block';
+      } else {
+         dwelling.style.display = 'none';
+      }
+   }
+
+</script>
