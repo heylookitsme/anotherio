@@ -14,6 +14,7 @@
    }
 </style>
 
+<!-- account sign-in/sign-up panel --> 
 <div id="account">
 	Username: <input id="username" type="text"></input><br>
 	Password: <input id="password" type="password"></input>
@@ -21,7 +22,7 @@
 	<button id="signUp">Sign Up</button>
 </div>
 
-<!--this is the navigation now (hide the pain harold)-->
+<!-- Wormverse navigation/main menu--> 
 <div id="mainMenu" style="display:none;background-color:red">
    <h1> Welcome to Wormverse!</h1>
 	<button id="modifyNav">Modify worm</button>
@@ -29,54 +30,67 @@
 	<button id="loungeNav">Lounge</button>
 	<button id="friendsNav">Friends/trade</button>
 	<button id="dwellingNav">Dwelling</button>
-	<button id="logoutNav">Logout</button>
+	<a href="/"> <button id="logoutNav">Logout</button></a>
 </div>
 
+<!-- Wormverse gamepanel, where something like "scenes" go for wormverse -->
 <div id="gamePane">
+   <!-- modifying worms subpanel, where you modify your worm's appearance (its pose, colors, pattern, and accessories-->
    <div id="modify" style="display:none">
       <h1> Modify your worm!</h1>
-      <img style="width:200px;height:200px;display:inline-block;border-style:solid" src="/client/img/worms/sprite1.png"/>
+      <canvas style="width:200px;height:200px;display:inline-block;border-style:solid" width="200" height="200"> Your lovely worm here! :D </canvas>
       <br>
 
-      <select name="sprite" id="modifySprite">
+      Sprite: <select id="modifySprite" oninput="changeWorm()">
         <option value="1">crouched</option>
-        <option value="2">sassy</option>
+        <option value="2">standard</option>
         <option value="3">long</option>
         <option value="4">curled</option>
-        <option value="5">standard</option>
+        <option value="5">sassy</option>
       </select><br>
 
-      <select name="sprite" id="">
-        <option value="1">solid</option>
-        <option value="2">polka dots</option>
-        <option value="3">stripes</option>
+      Pattern: <select id="modifyPattern" oninput="changeWorm()">
+        <option value="none">solid</option>
+        <option value="polka">polka dots</option>
+        <option value="stripes">stripes</option>
       </select><br>
 
-      Change Color: <input id="modifyColor" value="rgba(40,170,255,0.5)" data-jscolor=""><br>
-      Change Secondary Color: <input id="modifySecondaryColor" value="rgba(40,170,255,0.5)" data-jscolor=""><br>
-      <button id="modifyAccessory">Change Accessory</button>
-      <button id="modifySave">Save</button>
+      Color: <input id="modifyColor" value="rgba(40,170,255,0.5)" data-jscolor="{onChange: 'changeWorm()'}"><br>
+      Secondary Color: <input id="modifySecondaryColor" value="rgba(40,170,255,0.5)" data-jscolor="{onChange: 'changeWorm()'}"><br>
+
+      Accessory: <select id="modifyAccessory" oninput="changeWorm()">
+        <option value="none">none</option>
+        <option value="glasses">glasses</option>
+      </select><br>
+
+      <button id="modifySave" onclick="saveWorm()">Save</button>
    </div>
 
+   <!-- farming items subpanel, where you farm items (pies, carrots, peppermints) for your worms so you can level up-->
    <div id="farm" style="display:none">
       <h1> Farm items for your worm!</h1>
       <!-- todo onload with the players #items previously -->
-      <img style="height:50px" onclick="addItem('pie')" src="/client/img/foodstuff/pie.png"/> count: <span> 0 </span> <br>
-      <img style="height:50px" onclick="addItem('peppermint')" src="/client/img/foodstuff/peppermint.png"/> count: <span> 0 </span><br>
-      <img style="height:50px" onclick="addItem('carrot')" src="/client/img/foodstuff/carrot.png"/> count: <span> 0 </span>
+      <img style="height:50px" onclick="addItem('pie')" src="/client/img/foodstuff/pie.png"/> count: <span id="pieCount"> 0 </span> <br>
+      <img style="height:50px" onclick="addItem('peppermint')" src="/client/img/foodstuff/peppermint.png"/> count: <span id="peppermintCount"> 0 </span><br>
+      <img style="height:50px" onclick="addItem('carrot')" src="/client/img/foodstuff/carrot.png"/> count: <span id="carrotCount"> 0 </span>
    </div>
 
+   <!-- lounge subpanel, where you hangout with other worm friends --> 
    <div id="lounge" style="display:none">
       <h1> Lounge</h1>
    </div>
 
+   <!-- friends list subpanel, where you can view all worms online, add friends, and see your friends (to be implemented)-->
    <div id="friends" style="display:none">
       <h1> Friends list + trading</h1>
    </div>
 
+   <!-- dwelling subpanel, your worm's dwelling -->
    <div id="dwelling" style="display:none">
       <h1>Dwelling</h1>
-      <canvas> </canvas>
+      <!-- todo: do it -->
+      <canvas id="dwelling"> </canvas>
+      <img src="/client/img/dwelling/default_dwelling.png"/>
    </div>
 
 </div>
@@ -101,8 +115,10 @@
    var accessory = "none";
    numPies = 0;
    numPeppermint = 0;
-   numCarrot = 0;
+   numCarrots = 0;
 
+   const canvas = document.querySelector('canvas');
+   const ctx = canvas.getContext('2d');
 
    // client -> server socket interactions
 	accountSignIn.onclick = () => {
@@ -113,7 +129,11 @@
 		socket.emit('signUp',{username:accountUsername.value,password:accountPassword.value});
 	}
 
-   //todo: update DOM
+   function saveWorm(){
+      socket.emit('modifySave', {username: accountUsername.value, sprite:sprite, pattern:pattern, color:color, secondColor:secondaryColor, accessory:accessory});
+   }
+
+   // farmig subpanel functionality, increments a worm's items based upon whichever item is farmed.
    function addItem(name){
       switch(name){
          case "pie":
@@ -125,18 +145,65 @@
             socket.emit('addItem', {username:accountUsername.value, item:name}); 
             break; 
          case "carrot":
-            numCarrot++;
+            numCarrots++;
             socket.emit('addItem', {username:accountUsername.value, item:name}); 
             break; 
          default: 
             console.log("hey :(");
             break; 
       }
+      updateItems();
    }
-  
+
+   // updates DOM, redrawing the worm. note that the worm is represented on a 
+   // canvas and is drawn dynamically upon any client changes to the worm.
+   // canvas compositing is used to draw the patterns on the worms in particular, 
+   // and the fill of the worm is seperated from the line art. these elements are 
+   // composited to form the final worm. note changes to the worm are only *saved* 
+   // if the save button is pressed  
+   function changeWorm(){
+      sprite = document.getElementById("modifySprite").value;
+      pattern = document.getElementById("modifyPattern").value;
+      color = document.getElementById("modifyColor").value;
+      secondaryColor = document.getElementById("modifySecondaryColor").value;
+      accessory= document.getElementById("modifyAccessory").value;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      var fill = new Image(); 
+      var patt = new Image(); 
+      var lines = new Image();
+
+      // todo: make this less bad
+      fill.addEventListener('load', () => {
+         ctx.drawImage(fill,0,0, 200, 200);
+
+         ctx.globalCompositeOperation = "source-atop";
+         ctx.fillStyle=color;
+         ctx.fillRect(0,0,canvas.width,canvas.height)
+
+         patt.addEventListener('load', () => {
+            ctx.drawImage(patt,0,0, 200, 200);
+
+            lines.addEventListener('load', () => {
+            ctx.globalCompositeOperation = "source-over";
+
+               ctx.drawImage(lines,0,0, 200, 200);
+            }, false);
+
+         lines.src = '/client/img/wormsprites/sprite' + sprite + "_lines.png";
+         }, false);
+
+      patt.src = '/client/img/wormassets/' + pattern + ".png";
+      }, false);
+
+      fill.src = '/client/img/wormsprites/sprite' + sprite + "_fill.png";
+
+   }
+
    // client <- server interactions
 
-   // loads data into client information about worm upon sign in 
+   // loads data into client about worm upon successful sign in, calls changeWorm() and displays menu 
 	socket.on('signInResponse',(data) => {
 		if(data.success){
 			account.style.display = 'none';
@@ -149,7 +216,17 @@
          accessory = data.accessory;
          numPies = data.numPies;
          numPeppermint = data.numPeppermint;
-         numCarrot = data.numCarrots;
+         numCarrots = data.numCarrots;
+
+      // todo: do this better
+      document.getElementById("modifySprite").value = sprite;
+      document.getElementById("modifyPattern").value = pattern;
+      document.getElementById("modifyColor").value = color;
+      document.getElementById("modifySecondaryColor").value = secondaryColor;
+      document.getElementById("modifyAccessory").value = accessory;
+
+         changeWorm();
+         console.log("numpies: " + numPies);
 
 		} else
 			alert("Sign in unsuccessful.");
@@ -174,6 +251,7 @@
    document.getElementById('modifyNav').onclick = () => {
       if (modify.style.display === 'none') {
          modify.style.display = 'block';
+         changeWorm();
          //todo: update dom. 
       } else {
          modify.style.display = 'none';
@@ -181,6 +259,7 @@
    }
    document.getElementById('farmNav').onclick = () => {
       if (farm.style.display === "none") {
+         updateItems();
          farm.style.display = 'block';
       } else {
          farm.style.display = 'none';
@@ -206,6 +285,13 @@
       } else {
          dwelling.style.display = 'none';
       }
+   }
+
+   // updates the DOM for the farming tab
+   function updateItems(){
+      document.getElementById("pieCount").textContent=numPies;
+      document.getElementById("peppermintCount").textContent=numPeppermint;
+      document.getElementById("carrotCount").textContent=numCarrots;
    }
 
 </script>

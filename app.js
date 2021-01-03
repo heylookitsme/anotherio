@@ -38,7 +38,8 @@ io.sockets.on('connection', (socket) => {
          var database  = db.db('wormverse');
          const collection = database.collection('worms');
 
-         console.log("sign in credentials: " + data.username + " " + data.password);
+         // determines if the user with the given credentials actually exists, and notifies the
+         // client accoringly. if user indeed exists, the user's (worm) data is sent back to the client 
          collection.findOne({username:data.username, password:data.password}, (err, item) => {
             if(err || !item) {
                socket.emit('signInResponse',{success:false});
@@ -77,13 +78,26 @@ io.sockets.on('connection', (socket) => {
 
    });
 
-   // todo: write code to save client modifications to worm attributes to database. 
+   // saves client worm-attribute modifications to database. 
    socket.on('modifySave',(data) => {
-      
-      console.log('code to save worm appearance');
+      MongoClient.connect('mongodb://localhost:27017/wormverse', { useUnifiedTopology: true }, (err, db) => {
+         if (err) throw err
+
+         // mongodb weirdness
+         var database  = db.db('wormverse');
+         const collection = database.collection('worms');
+
+         // updates the worm data
+         collection.updateOne({username:data.username}, 
+                              {'$set': {sprite:data.sprite, pattern:data.pattern, color:data.color, secondColor:data.secondColor, accessory:data.accessory}}, 
+                              () => {console.log("worm appearance modified")}
+         );
+
+      })
+     
    });
 
-   // adds a specified item to players inventory
+   // adds a single quantity of a specified item to a players inventory.
    socket.on('addItem',(data) => {
       MongoClient.connect('mongodb://localhost:27017/wormverse', { useUnifiedTopology: true }, (err, db) => {
          if (err) throw err
@@ -92,16 +106,17 @@ io.sockets.on('connection', (socket) => {
          var database  = db.db('wormverse');
          const collection = database.collection('worms');
 
+         // determines which item was farmed, and increments the users number of items 
          collection.findOne({username: data.username}, (err, worm) => { 
             switch(data.item){
                case "pie":
-                  collection.updateOne({username:data.username}, {'$set': {'numPies': Number(worm['numPies']) + 1}}, (err, item) => { console.log("pie added!") })
+                  collection.updateOne({username:data.username}, {'$set': {numPies: Number(worm['numPies']) + 1}}, (err, item) => { console.log("pie added!") })
                   break; 
                case "peppermint": 
-                  collection.updateOne({username:data.username}, {'$set': {'numPeppermint': Number(worm['numPeppermint']) + 1}}, (err, item) => { console.log("peppermint added!") })
+                  collection.updateOne({username:data.username}, {'$set': {numPeppermint: Number(worm['numPeppermint']) + 1}}, (err, item) => { console.log("peppermint added!") })
                   break; 
                case "carrot":
-                  collection.updateOne({username:data.username}, {'$set': {'numCarrot': Number(worm['numCarrot']) + 1}}, (err, item) => { console.log("carrot added!") })
+                  collection.updateOne({username:data.username}, {'$set': {numCarrots: Number(worm['numCarrots']) + 1}}, (err, item) => { console.log("carrot added!") })
                   break; 
                default: 
                   console.log("shrug emoji");
@@ -111,9 +126,6 @@ io.sockets.on('connection', (socket) => {
          })
 
       })
-
-      // todo: i dont know if its too painful to update it every time? we'll figure that out 
-      // it would be nice to send a "batch" of how many items were farmed but could be blatantly exploitable
    });
 });
 
