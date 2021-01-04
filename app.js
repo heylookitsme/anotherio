@@ -10,6 +10,7 @@ app.get('/', (req, res) => {
 });
 // serving all other static files from client/ folder
 app.use('/client',express.static(__dirname + '/client'));
+app.use('/node_modules/bootstrap',express.static(__dirname + '/node_modules/bootstrap'));
 
 // easter egg  
 app.get('/secret', (req, res) => {

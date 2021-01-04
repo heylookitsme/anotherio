@@ -6,6 +6,16 @@
    <link rel="icon" type="image/png" sizes="32x32" href="/client/favicons/favicon-32x32.png">
    <link rel="icon" type="image/png" sizes="16x16" href="/client/favicons/favicon-16x16.png">
    <link rel="manifest" href="/client/favicons/site.webmanifest">
+
+   <!-- bootstrap -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 </head>
 
 <style> 
@@ -14,23 +24,30 @@
    }
 </style>
 
-<!-- account sign-in/sign-up panel --> 
-<div id="account">
-	Username: <input id="username" type="text"></input><br>
-	Password: <input id="password" type="password"></input>
-	<button id="signIn">Sign In</button>
-	<button id="signUp">Sign Up</button>
+<!-- account sign-in/sign-up panel -->
+<div class="container-fluid"> 
+<div id="account" class="form-signin col-3">
+	Username: <input id="username" class="form-control" placeholder="username" type="text"></input>
+	Password: <input id="password" class="form-control" placeholder="password" type="password"></input><br>
+	<button class="btn btn-lg btn-primary btn-block" id="signIn">Sign In</button>
+	<button class="btn btn-lg btn-secondary btn-block" id="signUp">Sign Up</button>
+</div>
 </div>
 
-<!-- Wormverse navigation/main menu--> 
-<div id="mainMenu" style="display:none;background-color:red">
-   <h1> Welcome to Wormverse!</h1>
-	<button id="modifyNav">Modify worm</button>
-	<button id="farmNav">Farm stuff</button>
-	<button id="loungeNav">Lounge</button>
-	<button id="friendsNav">Friends/trade</button>
-	<button id="dwellingNav">Dwelling</button>
-	<a href="/"> <button id="logoutNav">Logout</button></a>
+<!-- Wormverse navigation/main menu-->
+<div id="mainMenu" style="display:none"> 
+<h1> Welcome to Wormverse!</h1>
+<nav>
+<ul class="nav nav-pills">
+	<li role="presentation" class="active" id="modifyNav"><a>Modify worm</a></li>
+	<li role="presentation" id="farmNav"><a>Farm stuff</a></li>
+	<li role="presentation" id="loungeNav"><a>Lounge</a></li>
+	<li role="presentation" id="friendsNav"><a>Friends/trade</a></li>
+	<li role="presentation" id="dwellingNav"><a>Dwelling</a></li>
+	<li role="presentation" id="logoutNav"><a href="/">Logout</a></li>
+</ul>
+</nav>
+
 </div>
 
 <!-- Wormverse gamepanel, where something like "scenes" go for wormverse -->
@@ -41,6 +58,7 @@
       <canvas style="width:200px;height:200px;display:inline-block;border-style:solid" width="200" height="200"> Your lovely worm here! :D </canvas>
       <br>
 
+      Level: <span id="wormLevel"> 0 </span><br>
       Sprite: <select id="modifySprite" oninput="changeWorm()">
         <option value="1">crouched</option>
         <option value="2">standard</option>
