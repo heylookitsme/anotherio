@@ -2,7 +2,9 @@ const express = require('express');
 const app = express();
 const serv = require('http').Server(app);
 
+//todo: i have to actually use this now. this is so fucking sad
 var SOCKET_LIST = {};
+let PLAYER_LIST = [];
 
 // serving index.html with express 
 app.get('/', (req, res) => {
@@ -45,6 +47,13 @@ io.sockets.on('connection', (socket) => {
             if(err || !item) {
                socket.emit('signInResponse',{success:false});
             } else {
+               //todo: my defense is a set is expensive
+               if(!PLAYER_LIST.includes(data.username)){
+                  PLAYER_LIST.push(data.username);
+                  console.log("list of logged on players since server started" + PLAYER_LIST);
+               }
+
+               // todo: purge this cringe
                var temp = item;
                temp["success"] = true;
                socket.emit('signInResponse',item);
@@ -69,7 +78,6 @@ io.sockets.on('connection', (socket) => {
                                   pattern: "none", accessory: "none", numPies: "0", numCarrots: "0", numPeppermint: "0" }, (err, result) => {
                if(err) throw err
             })
-
             socket.emit('signUpResponse',{success:true});
          }else{
             socket.emit('signUpResponse',{success:false});
@@ -127,6 +135,10 @@ io.sockets.on('connection', (socket) => {
          })
 
       })
+   });
+   
+   socket.on('getFriends',(data) => {
+      socket.emit('getFriendsResponse', PLAYER_LIST);
    });
 });
 

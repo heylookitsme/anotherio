@@ -16,17 +16,15 @@
 
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="/client/style.css">
 </head>
 
-<style> 
-   img.pointer{
-      cursor: pointer;
-   }
-</style>
+<body>
 
 <!-- account sign-in/sign-up panel -->
 <div class="container-fluid"> 
-<div id="account" class="form-signin col-3">
+<div id="account" class="form-signin col-2">
 	Username: <input id="username" class="form-control" placeholder="username" type="text"></input>
 	Password: <input id="password" class="form-control" placeholder="password" type="password"></input><br>
 	<button class="btn btn-lg btn-primary btn-block" id="signIn">Sign In</button>
@@ -101,6 +99,7 @@
    <!-- friends list subpanel, where you can view all worms online, add friends, and see your friends (to be implemented)-->
    <div id="friends" style="display:none">
       <h1> Friends list + trading</h1>
+      <div id="friendList"></div>
    </div>
 
    <!-- dwelling subpanel, your worm's dwelling -->
@@ -112,6 +111,7 @@
    </div>
 
 </div>
+</body>
 
 <script src="/client/js/jscolor.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.1/socket.io.min.js"></script>
@@ -150,6 +150,7 @@
    function saveWorm(){
       socket.emit('modifySave', {username: accountUsername.value, sprite:sprite, pattern:pattern, color:color, secondColor:secondaryColor, accessory:accessory});
    }
+   
 
    // farmig subpanel functionality, increments a worm's items based upon whichever item is farmed.
    function addItem(name){
@@ -257,6 +258,21 @@
 			alert("Sign up unsuccessful.");
 	});
 
+	socket.on('getFriendsResponse',(data) => {
+      // wouldnt thisbe great in react 
+      //me and myself and i
+
+      document.getElementById("friendList").innerHTML="";
+      data.forEach( (name) => {
+         var node = document.createElement("LI");
+         var textnode = document.createTextNode(name);
+         node.appendChild(textnode);
+         document.getElementById("friendList").appendChild(node);
+      })
+
+
+	});
+
 	//game
 	
 	var modify = document.getElementById('modify');
@@ -293,6 +309,7 @@
    document.getElementById('friendsNav').onclick = () => {
       if (friends.style.display === "none") {
          friends.style.display = 'block';
+         socket.emit('getFriends');
       } else {
          friends.style.display = 'none';
       }

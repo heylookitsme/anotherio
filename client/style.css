@@ -1,0 +1,36 @@
+.body {
+
+}
+
+#gamePane {
+   margin: 4px;
+}
+
+#mainMenu {
+   margin: 4px;
+}
+
+#account {
+   top: 20vh;
+   position: relative;
+   margin-left:auto;
+   margin-right:auto;
+}
+
+@media all and (min-width: 800px) {
+  #account {
+          width: 20vw;
+  }
+}
+
+@media not all and (min-width: 800px) {
+  #account {
+      width: 100vw;
+      font-size:40px
+      
+  }
+  .body {
+      font-size:20px;
+   }
+}
+
